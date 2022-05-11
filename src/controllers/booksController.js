@@ -8,6 +8,9 @@ export async function getBookById(req, res) {
         const book = await db
             .collection('books')
             .findOne({ _id: new ObjectId(id) });
+        if(!book) {
+            return res.sendStatus(404);
+        }
         res.send(book);
     } catch (e) {
         res.send(e);
