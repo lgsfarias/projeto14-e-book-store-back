@@ -1,14 +1,12 @@
 import express, { json } from 'express';
 import cors from 'cors';
 
-import db from './config/dbConnect.js';
+import authenticationRouter from './routes/authenticationRouter.js';
 
 const app = express();
 app.use(json());
 app.use(cors());
 
-app.get('/', (req, res) => {
-    res.send('Online');
-});
+app.use(authenticationRouter);
 
 export default app;
