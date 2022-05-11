@@ -8,11 +8,21 @@ export async function getBookById(req, res) {
         const book = await db
             .collection('books')
             .findOne({ _id: new ObjectId(id) });
-        if(!book) {
+        if (!book) {
             return res.sendStatus(404);
         }
-        res.send(book);
+        res.status(200).send(book);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+}
+
+export async function getBooks(req, res) {
+    try {
+        const books = await db.collection('books').find().toArray();
+
+        res.status(200).send(books);
     } catch (e) {
-        res.send(e);
+        res.status(500).send(error);
     }
 }
