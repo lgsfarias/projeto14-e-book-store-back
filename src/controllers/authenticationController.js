@@ -14,7 +14,13 @@ export async function signup(req, res) {
         if(emailAlreadyTaken) {
             return res.sendStatus(409);
         }
-        await db.collection("users").insertOne({ ...user, password: passwordHash });
+        await db.collection("users").insertOne({
+            ...user,
+            password: passwordHash,
+            cart: [],
+            booksOwned: [],
+            purchseHistory: []
+        });
         res.sendStatus(201);
     } catch (e) {
         res.send(e);
