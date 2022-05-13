@@ -6,7 +6,8 @@ export async function getShoppingCart (req, res) {
     const {userId} = res.locals;
     try {
         const user = await db.collection("users").findOne({_id: new ObjectId(userId)});
-        res.send(user.cart);
+        const books = await db.collection("books").find().toArray();
+        res.send(user.cart.map(bookId => books.find(book => book._id.toString() == bookId)));
     } catch (e) {
         res.send(e);
     }
