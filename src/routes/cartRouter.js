@@ -6,10 +6,10 @@ import { validateBook, validateBooks } from "../middlewares/validateBook.js";
 
 const cartRouter = Router();
 
-cartRouter.use(validateToken);
+//cartRouter.use(validateToken);
 
-cartRouter.get("/shopping-carts", getShoppingCart);
-cartRouter.post("/shopping-carts", validateBooks, addBooksToShoppingCart);
-cartRouter.delete("/shopping-carts", validateBook, removeBookFromShoppingCart);
+cartRouter.get("/shopping-carts", validateToken, getShoppingCart);
+cartRouter.post("/shopping-carts", validateToken, validateBooks, addBooksToShoppingCart);
+cartRouter.delete("/shopping-carts", validateToken, validateBook, removeBookFromShoppingCart);
 
 export default cartRouter;
