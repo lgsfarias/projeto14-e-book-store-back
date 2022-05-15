@@ -10,6 +10,6 @@ const booksRouter = Router();
 
 booksRouter.get('/books/:id', getBookById);
 booksRouter.get('/books', getBooks);
-booksRouter.get('/books/best-selling', getBooksSortedByTotalPurchases);
+booksRouter.get('/best-selling', getBooksSortedByTotalPurchases);
 
 export default booksRouter;
