@@ -26,3 +26,16 @@ export async function getBooks(req, res) {
         res.status(500).send(e);
     }
 }
+
+export async function getBooksSortedByTotalPurchases(req, res) {
+    try {
+        const booksSorted = await db
+            .collection('books')
+            .find()
+            .sort({ totalPurchases: -1 })
+            .toArray();
+        res.send(booksSorted);
+    } catch (e) {
+        res.status(500).send(e);
+    }
+}
