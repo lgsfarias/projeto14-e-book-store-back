@@ -6,6 +6,6 @@ export async function getKinds(req, res) {
 
         res.status(200).send(kinds);
     } catch (e) {
-        res.status(500).send(error);
+        res.status(500).send(e);
     }
 }

@@ -23,6 +23,6 @@ export async function getBooks(req, res) {
 
         res.status(200).send(books);
     } catch (e) {
-        res.status(500).send(error);
+        res.status(500).send(e);
     }
 }

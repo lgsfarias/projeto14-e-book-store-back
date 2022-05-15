@@ -21,6 +21,6 @@ export async function validateToken(req, res, next) {
         res.locals.userId = userId;
         next();
     } catch (e) {
-        return res.send(e);
+        return res.status(500).send(e);
     }
 }
