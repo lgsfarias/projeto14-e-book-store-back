@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { useReducer } from 'react/cjs/react.production.min';
 
 import db from '../config/dbConnect.js';
 
@@ -87,13 +88,19 @@ export async function checkout(req, res) {
             return res.sendStatus(412);
         }
         const books = await db.collection('books').find().toArray();
-        let totalPrice = 0;
-        user.cart.forEach(
-            (bookId) =>
-                (totalPrice += books.find(
-                    (book) => book._id == new ObjectId(bookId)
-                ).price)
+        const booksInCart = user.cart.map((bookId) =>
+            books.find((book) => book._id == new ObjectId(bookId))
         );
+
+        let totalPrice = 0;
+        booksInCart.forEach((book) => {
+            totalPrice += book.price;
+            book.totalPurchases++;
+            const filter = {_id: book._id};
+            const update = {$set: {totalPurchases: book.totalPurchases}};
+            await db.collection("books").updateOne(filter, update );
+        });
+
         const purchase = {
             payment,
             totalPrice,
