@@ -1,54 +1,138 @@
-import { ObjectId } from "mongodb";
+import { ObjectId } from 'mongodb';
 
-import db from "../config/dbConnect.js"
+import db from '../config/dbConnect.js';
 
-export async function getShoppingCart (req, res) {
-    const {userId} = res.locals;
+export async function getShoppingCart(req, res) {
+    const { userId } = res.locals;
     try {
-        const user = await db.collection("users").findOne({_id: new ObjectId(userId)});
-        const books = await db.collection("books").find().toArray();
-        res.send(user.cart.map(bookId => books.find(book => book._id.toString() == bookId)));
+        const user = await db
+            .collection('users')
+            .findOne({ _id: new ObjectId(userId) });
+        const books = await db.collection('books').find().toArray();
+        res.send(
+            user.cart.map((bookId) =>
+                books.find((book) => book._id.toString() == bookId)
+            )
+        );
     } catch (e) {
-        res.send(e);
+        res.status(500).send(e);
     }
 }
 
-export async function addBooksToShoppingCart (req, res) {
-
-    const {userId} = res.locals;
-    const {booksId} = req.body;
+export async function addBooksToShoppingCart(req, res) {
+    const { userId } = res.locals;
+    const { booksId } = req.body;
     try {
-        const user = await db.collection("users").findOne({_id: new ObjectId(userId)});
+        const user = await db
+            .collection('users')
+            .findOne({ _id: new ObjectId(userId) });
         console.log(user.email);
-        for(const book of booksId) {
-            if(!user.cart.find(bookAlreadyInCart => book == bookAlreadyInCart)) {
-                if(!user.booksOwned.find(bookAlreadyOwned => book == bookAlreadyOwned)) {
+        for (const book of booksId) {
+            if (
+                !user.cart.find(
+                    (bookAlreadyInCart) => book == bookAlreadyInCart
+                )
+            ) {
+                if (
+                    !user.booksOwned.find(
+                        (bookAlreadyOwned) => book == bookAlreadyOwned
+                    )
+                ) {
                     user.cart.push(book);
                 }
             }
         }
-        await db.collection("users").updateOne({_id: new ObjectId(userId)}, {
-            $set: {cart: user.cart}
-        });
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(userId) },
+            {
+                $set: { cart: user.cart },
+            }
+        );
         res.sendStatus(200);
     } catch (e) {
-        res.send(e);
+        res.status(500).send(e);
     }
 }
 
-export async function removeBookFromShoppingCart (req, res) {
+export async function removeBookFromShoppingCart(req, res) {
+    const { userId } = res.locals;
+    const { bookId } = req.body;
 
-    const {userId} = res.locals;
-    const {bookId} = req.body;
-    
     try {
-        const user = await db.collection("users").findOne({_id: new ObjectId(userId)});
-        const newCart = user.cart.filter(book => book != bookId);
-        await db.collection("users").updateOne({_id: new ObjectId(userId)}, {
-            $set: {cart: newCart}
-        });
+        const user = await db
+            .collection('users')
+            .findOne({ _id: new ObjectId(userId) });
+        const newCart = user.cart.filter((book) => book != bookId);
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(userId) },
+            {
+                $set: { cart: newCart },
+            }
+        );
         res.sendStatus(200);
     } catch (e) {
-        res.send(e);
+        res.status(500).send(e);
+    }
+}
+
+export async function checkout(req, res) {
+    const { userId } = res.locals;
+    const { payment } = req.body;
+
+    try {
+        const user = await db
+            .collection('users')
+            .findOne({ _id: new ObjectId(userId) });
+        if (user.cart.length == 0) {
+            return res.sendStatus(412);
+        }
+        const books = await db.collection('books').find().toArray();
+        const booksInCart = user.cart.map((bookId) =>
+            books.find((book) => book._id == new ObjectId(bookId))
+        );
+
+        let totalPrice = 0;
+        for (const book of booksInCart) {
+            totalPrice += book.price;
+            book.totalPurchases++;
+            const filter = { _id: book._id };
+            const update = { $set: { totalPurchases: book.totalPurchases } };
+            await db.collection('books').updateOne(filter, update);
+        }
+
+        const purchase = {
+            payment,
+            totalPrice,
+            books: user.cart,
+            date: new Date(),
+        };
+        const newBooksOwned = user.booksOwned.concat(user.cart);
+        const newPurchaseHistory = user.purchaseHistory.concat([purchase]);
+        await db.collection('users').updateOne(
+            { _id: new ObjectId(userId) },
+            {
+                $set: {
+                    booksOwned: newBooksOwned,
+                    cart: [],
+                    purchaseHistory: newPurchaseHistory,
+                },
+            }
+        );
+        res.sendStatus(200);
+    } catch (e) {
+        res.status(500).send(e);
+    }
+}
+
+export async function getPurchaseHistory(req, res) {
+    const { userId } = res.locals;
+
+    try {
+        const user = await db
+            .collection('users')
+            .findOne({ _id: new ObjectId(userId) });
+        res.send(user.purchaseHistory);
+    } catch (e) {
+        res.status(500).send(e);
     }
 }
