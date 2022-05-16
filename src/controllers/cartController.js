@@ -123,7 +123,7 @@ export async function checkout(req, res) {
                 },
             }
         );
-        await sendEmail(user.email);
+        await sendEmail(user.email, booksInCart, totalPrice);
         res.sendStatus(200);
     } catch (e) {
         res.status(500).send(e);
@@ -143,14 +143,47 @@ export async function getPurchaseHistory(req, res) {
     }
 }
 
-export async function sendEmail(userEmail) {
+export async function sendEmail(userEmail, cart, totalPrice) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const html =
+        '<h1>Compra finalizada com sucesso!</h1><br><br><h2>Resumo da compra:</h2>';
+    for (const book of cart) {
+        html += `
+            <div>
+                <div>
+                    <h1>${book.name}</h1>
+                    <p>
+                        <span>
+                            ${
+                                book.oldPrice > book.price &&
+                                book.oldPrice.toLocaleString('pt-br', {
+                                    style: 'currency',
+                                    currency: 'BRL',
+                                })
+                            }
+                        </span>{' '}
+                        ${book.price.toLocaleString('pt-br', {
+                            style: 'currency',
+                            currency: 'BRL',
+                        })}
+                    </p>
+                </div>
+                <img
+                    src=${book.cover}
+                    style={{ width: '50px' }}
+                />
+            </div>
+        `;
+    }
+    html += `<p>Total: R$ ${totalPrice.toFixed(
+        2
+    )}</p><br><br><p>Agradecemos pela preferência!</p>`;
     const msg = {
         to: userEmail,
         from: 'henriquehhr@gmail.com',
         subject: 'Compra concluída com sucesso',
         text: 'Deu certo!',
-        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+        html,
     };
 
     (async () => {
