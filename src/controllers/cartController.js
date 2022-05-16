@@ -145,7 +145,7 @@ export async function getPurchaseHistory(req, res) {
 
 export async function sendEmail(userEmail, totalPrice) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    const html = '<h1>Compra finalizada com sucesso!</h1>';
+    let html = '<h1>Compra finalizada com sucesso!</h1>';
     html += `<p>Total: R$ ${totalPrice.toFixed(2)}`;
     const msg = {
         to: userEmail,
