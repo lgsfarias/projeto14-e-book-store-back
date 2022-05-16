@@ -28,6 +28,10 @@ export async function getBookById(req, res) {
             if (user.booksOwned.find((bookOwned) => bookOwned == id)) {
                 return res.status(207).send(book);
             }
+            for (const bookInCart of user.cart) {
+                if (bookInCart == id) return res.status(202).send(book);
+            }
+            //if (user.cart.find((bookInCart) => bookInCart === '' + id)) { }
         }
         res.status(200).send(book);
     } catch (error) {
