@@ -39,7 +39,7 @@ export async function signin(req, res) {
                 .collection('sessions')
                 .insertOne({ userId: user._id });
             const token = jwt.sign({ sessionId: insertedId }, secretKey);
-            res.send(token);
+            res.send({ token, username: user.name });
         } else {
             res.sendStatus(401);
         }
