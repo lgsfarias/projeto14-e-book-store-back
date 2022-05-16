@@ -123,7 +123,7 @@ export async function checkout(req, res) {
                 },
             }
         );
-        await sendEmail(user.email, booksInCart, totalPrice);
+        await sendEmail(user.email, totalPrice);
         res.sendStatus(200);
     } catch (e) {
         res.status(500).send(e);
@@ -143,7 +143,7 @@ export async function getPurchaseHistory(req, res) {
     }
 }
 
-export async function sendEmail(userEmail, cart, totalPrice) {
+export async function sendEmail(userEmail, totalPrice) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     const html = '<h1>Compra finalizada com sucesso!</h1>';
     html += `<p>Total: R$ ${totalPrice.toFixed(2)}`;
