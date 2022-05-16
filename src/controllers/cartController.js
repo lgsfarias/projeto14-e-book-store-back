@@ -1,6 +1,10 @@
 import { ObjectId } from 'mongodb';
+import dotenv from 'dotenv';
+import sgMail from '@sendgrid/mail';
 
 import db from '../config/dbConnect.js';
+
+dotenv.config();
 
 export async function getShoppingCart(req, res) {
     const { userId } = res.locals;
@@ -39,7 +43,11 @@ export async function addBooksToShoppingCart(req, res) {
                     )
                 ) {
                     user.cart.push(book);
+                } else if (booksId.length == 1) {
+                    return res.sendStatus(204);
                 }
+            } else if (booksId.length == 1) {
+                return res.sendStatus(206);
             }
         }
         await db.collection('users').updateOne(
@@ -78,19 +86,18 @@ export async function removeBookFromShoppingCart(req, res) {
 export async function checkout(req, res) {
     const { userId } = res.locals;
     const { payment } = req.body;
-
     try {
         const user = await db
             .collection('users')
             .findOne({ _id: new ObjectId(userId) });
+        console.log('achou usuário');
         if (user.cart.length == 0) {
             return res.sendStatus(412);
         }
         const books = await db.collection('books').find().toArray();
         const booksInCart = user.cart.map((bookId) =>
-            books.find((book) => book._id == new ObjectId(bookId))
+            books.find((book) => book._id.toString() == bookId)
         );
-
         let totalPrice = 0;
         for (const book of booksInCart) {
             totalPrice += book.price;
@@ -118,6 +125,7 @@ export async function checkout(req, res) {
                 },
             }
         );
+        await sendEmail(user.email);
         res.sendStatus(200);
     } catch (e) {
         res.status(500).send(e);
@@ -135,4 +143,27 @@ export async function getPurchaseHistory(req, res) {
     } catch (e) {
         res.status(500).send(e);
     }
+}
+
+export async function sendEmail(userEmail) {
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    const msg = {
+        to: userEmail,
+        from: 'henriquehhr@gmail.com',
+        subject: 'Compra concluída com sucesso',
+        text: 'Deu certo!',
+        html: '<strong>and easy to do anywhere, even with Node.js</strong>',
+    };
+
+    (async () => {
+        try {
+            await sgMail.send(msg);
+        } catch (error) {
+            console.error(error);
+
+            if (error.response) {
+                console.error(error.response.body);
+            }
+        }
+    })();
 }

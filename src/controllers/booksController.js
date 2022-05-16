@@ -1,5 +1,9 @@
 import { ObjectId } from 'mongodb';
 import db from '../config/dbConnect.js';
+import dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
+
+dotenv.config();
 
 export async function getBookById(req, res) {
     const { id } = req.params;
@@ -10,6 +14,20 @@ export async function getBookById(req, res) {
             .findOne({ _id: new ObjectId(id) });
         if (!book) {
             return res.sendStatus(404);
+        }
+        if (req.headers.authorization) {
+            const token = req.headers.authorization.slice(7);
+            const secretKey = process.env.JWT_SECRET;
+            const { sessionId } = jwt.verify(token, secretKey);
+            const { userId } = await db
+                .collection('sessions')
+                .findOne({ _id: new ObjectId(sessionId) });
+            const user = await db
+                .collection('users')
+                .findOne({ _id: new ObjectId(userId) });
+            if (user.booksOwned.find((bookOwned) => bookOwned == id)) {
+                return res.status(207).send(book);
+            }
         }
         res.status(200).send(book);
     } catch (error) {
