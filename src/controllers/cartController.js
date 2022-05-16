@@ -145,39 +145,8 @@ export async function getPurchaseHistory(req, res) {
 
 export async function sendEmail(userEmail, cart, totalPrice) {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    const html =
-        '<h1>Compra finalizada com sucesso!</h1><br><br><h2>Resumo da compra:</h2>';
-    for (const book of cart) {
-        html += `
-            <div>
-                <div>
-                    <h1>${book.name}</h1>
-                    <p>
-                        <span>
-                            ${
-                                book.oldPrice > book.price &&
-                                book.oldPrice.toLocaleString('pt-br', {
-                                    style: 'currency',
-                                    currency: 'BRL',
-                                })
-                            }
-                        </span>{' '}
-                        ${book.price.toLocaleString('pt-br', {
-                            style: 'currency',
-                            currency: 'BRL',
-                        })}
-                    </p>
-                </div>
-                <img
-                    src=${book.cover}
-                    style={{ width: '50px' }}
-                />
-            </div>
-        `;
-    }
-    html += `<p>Total: R$ ${totalPrice.toFixed(
-        2
-    )}</p><br><br><p>Agradecemos pela preferência!</p>`;
+    const html = '<h1>Compra finalizada com sucesso!</h1>';
+    html += `<p>Total: R$ ${totalPrice.toFixed(2)}`;
     const msg = {
         to: userEmail,
         from: 'henriquehhr@gmail.com',
