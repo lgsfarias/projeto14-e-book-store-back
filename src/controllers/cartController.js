@@ -30,7 +30,6 @@ export async function addBooksToShoppingCart(req, res) {
         const user = await db
             .collection('users')
             .findOne({ _id: new ObjectId(userId) });
-        console.log(user.email);
         for (const book of booksId) {
             if (
                 !user.cart.find(
@@ -90,7 +89,6 @@ export async function checkout(req, res) {
         const user = await db
             .collection('users')
             .findOne({ _id: new ObjectId(userId) });
-        console.log('achou usuário');
         if (user.cart.length == 0) {
             return res.sendStatus(412);
         }
