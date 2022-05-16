@@ -43,7 +43,11 @@ export async function addBooksToShoppingCart(req, res) {
                     )
                 ) {
                     user.cart.push(book);
+                } else if (booksId.length == 1) {
+                    return res.sendStatus(204);
                 }
+            } else if (booksId.length == 1) {
+                return res.sendStatus(206);
             }
         }
         await db.collection('users').updateOne(
