@@ -78,19 +78,23 @@ export async function removeBookFromShoppingCart(req, res) {
 export async function checkout(req, res) {
     const { userId } = res.locals;
     const { payment } = req.body;
-
+    console.log('entrou');
     try {
         const user = await db
             .collection('users')
             .findOne({ _id: new ObjectId(userId) });
+        console.log('achou usuário');
         if (user.cart.length == 0) {
             return res.sendStatus(412);
         }
         const books = await db.collection('books').find().toArray();
+        console.log('achou livros');
+        console.log(user.cart);
         const booksInCart = user.cart.map((bookId) =>
-            books.find((book) => book._id == new ObjectId(bookId))
+            books.find((book) => book._id.toString() == bookId)
         );
-
+        console.log(booksInCart);
+        console.log('achou livros que estão no carrinho');
         let totalPrice = 0;
         for (const book of booksInCart) {
             totalPrice += book.price;
@@ -99,6 +103,7 @@ export async function checkout(req, res) {
             const update = { $set: { totalPurchases: book.totalPurchases } };
             await db.collection('books').updateOne(filter, update);
         }
+        console.log('passou pelo for');
 
         const purchase = {
             payment,
@@ -118,6 +123,7 @@ export async function checkout(req, res) {
                 },
             }
         );
+        console.log('fez update do usuário');
         res.sendStatus(200);
     } catch (e) {
         res.status(500).send(e);
